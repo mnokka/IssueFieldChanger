@@ -95,7 +95,7 @@ def main(argv):
     Authenticate(JIRASERVICE,PSWD,USER)
     jira=DoJIRAStuff(USER,PSWD,JIRASERVICE)
     
-   # Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,RENAME,subfilename,excelfilepath,filename,ENV)
+    Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV)
 
 
 
@@ -105,38 +105,31 @@ def main(argv):
 
 #NOTE: Uses hardcoded sheet/column value
 
-def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,RENAME,subfilename,excelfilepath,filename,ENV):
+def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
 
     files=excelfilepath+"/"+filename
-    logging.debug ("File:{0}".format(files))
+    logging.debug ("Excel file:{0}".format(files))
+   
+  
    
     Issues=defaultdict(dict) 
    
     #main excel definitions
-    MainSheet="general_report" 
+    MainSheet="Sheet1" 
     wb= openpyxl.load_workbook(files)
     #types=type(wb)
     #logging.debug ("Type:{0}".format(types))
     #sheets=wb.get_sheet_names()
     #logging.debug ("Sheets:{0}".format(sheets))
     CurrentSheet=wb[MainSheet] 
-    #logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-    #logging.debug ("First row:{0}".format(CurrentSheet['A4'].value))
-
-   
-    #subtasks excel definitions
-    logging.debug ("ExcelFilepath: %s     ExcelFilename:%s" %(excelfilepath ,subfilename))
-    subfiles=excelfilepath+"/"+subfilename
-    logging.debug ("SubFiles:{0}".format(subfiles))
-   
-    
-    SubMainSheet="general_report" 
-    subwb= openpyxl.load_workbook(subfiles)
+    logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
+    logging.debug ("First key:{0}".format(CurrentSheet['A2'].value))
+    logging.debug ("First Drawing number:{0}".format(CurrentSheet['B2'].value))
+    logging.debug ("First NEW Drawing Number:{0}".format(CurrentSheet['C2'].value))
     #types=type(wb)
     #logging.debug ("Type:{0}".format(types))
     #sheets=wb.get_sheet_names()
     #logging.debug ("Sheets:{0}".format(sheets))
-    SubCurrentSheet=subwb[SubMainSheet] 
     #logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
     #logging.debug ("First row:{0}".format(CurrentSheet['A4'].value))
    
@@ -148,29 +141,13 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,RENAME,subfilename,excelfilepath,fil
     
     
     ########################################
-    #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS, both main and subtask excel
-    DATASTARTSROW=5 # data section starting line MAIN TASKS EXCEL
-    DATASTARTSROWSUB=5 # data section starting line SUB TASKS EXCEL
-    C=3 #SUMMARY
-    D=4 #Issue Type
-    E=5 #Status Always "Open"    
-    G=7 #ResponsibleNW
-    H=8 #Creator
-    I=9 #Inspection date --> Original Created date in Jira Changed as Inspection Date
-    J=10 # Subtask TASK-ID
-    K=11 #system number, subtasks excel 
-    M=13 #Shipnumber
-    N=14 #system number
-    P=16 #PerformerNW
-    Q=17 #Performer, subtask excel
-    R=18 #Responsible ,subtask excel
-    #U=20 #Responsible Phone Number --> Not taken, field just exists in Jira
-    S=19 #DepartmentNW
-    V=22 #Deck
-    W=23 #Block
-    X=24 # Firezone
-    AA=27 #Subtask DeckNW
-   
+    #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
+    DATASTARTSROW=2 # data section starting line 
+    A=0 # issue key
+    B=1 # Drawing Number
+    C=2 # New replacemewnt Drawing Number
+    
+      
 
     
    
@@ -193,9 +170,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,RENAME,subfilename,excelfilepath,fil
     
     
     
-    Authenticate(JIRASERVICE,PSWD,USER)
-    jira=DoJIRAStuff(USER,PSWD,JIRASERVICE)
-
+    sys.exit(5)
     
    
         
