@@ -169,11 +169,17 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
             logging.debug("             Old Drawing number:{1}".format(i,DRWNMB))
             NEW_DRWNMB=(CurrentSheet.cell(row=i, column=C).value)
             logging.debug("             NEW Drawing number:{1}".format(i,NEW_DRWNMB))
-            logging.debug("---------------------------------------------------")
+            
+            for issue in jira.search_issues("project=NB1400DM  and issuekey = {0}".format(KEY), maxResults=10):
+                myissuekey=format(issue.key)
+                logging.debug("myissuekey: {0}:".format(myissuekey))
+                logging.debug("ISSUE: {0}:".format(issue))
+                logging.debug("ID{0}: ".format(issue.id))
+                logging.debug("---------------------------------------------------")
             i=i+1
             
-    for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
-        logging.debug("{}: {}".format(issue.key, issue.fields.summary))
+    #for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
+    #    logging.debug("{}: {}".format(issue.key, issue.fields.summary))
            
        
          
