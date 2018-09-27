@@ -134,23 +134,15 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
     #logging.debug ("First row:{0}".format(CurrentSheet['A4'].value))
    
    
-   
-    
 
-    
-    
-    
     ########################################
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
     DATASTARTSROW=2 # data section starting line 
-    A=0 # issue key
-    B=1 # Drawing Number
-    C=2 # New replacemewnt Drawing Number
+    A=1 # issue key
+    B=2 # Drawing Number
+    C=3 # New replacemewnt Drawing Number
     
-      
 
-    
-   
     #print Issues.items() 
     
     #key=18503 # check if this key exists
@@ -161,18 +153,6 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
     #for key, value in Issues.iteritems() :
     #    print key, value
 
-    #
-               
-    
-
-
-    ##########################################################################################################################
-    
-    
-    
-    sys.exit(5)
-    
-   
         
     ### MAIN EXCEL ###########################################################################################
     #Go through main excel sheet for main issue keys (and contents findings)
@@ -181,93 +161,17 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
     # NOTE: As this handles first sheet, using used row/cell reading (buggy, works only for first sheet) 
     #
     i=DATASTARTSROW # brute force row indexing
-    for row in CurrentSheet[('B{}:B{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column B (KEY) rows
+    for row in CurrentSheet[('A{}:A{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
         for mycell in row:
             KEY=mycell.value
-            logging.debug("ROW:{0} Original ID:{1}".format(i,mycell.value))
-            Issues[KEY]={} # add to dictionary as master key (KEY)
-            
-            #Just hardocode operations, POC is one off
-            #LINKED_ISSUES=(CurrentSheet.cell(row=i, column=K).value) #NOTE THIS APPROACH GOES ALWAYS TO THE FIRST SHEET
-            #logging.debug("Attachment:{0}".format((CurrentSheet.cell(row=i, column=K).value))) # for the same row, show also column K (LINKED_ISSUES) values
-            #Issues[KEY]["LINKED_ISSUES"] = LINKED_ISSUES
-            
-            SUMMARY=(CurrentSheet.cell(row=i, column=C).value)
-            if not SUMMARY:
-                SUMMARY="Summary for this task has not been defined"
-            Issues[KEY]["SUMMARY"] = SUMMARY
-            
-            ISSUE_TYPE=(CurrentSheet.cell(row=i, column=D).value)
-            Issues[KEY]["ISSUE_TYPE"] = ISSUE_TYPE
-            
-            STATUS=(CurrentSheet.cell(row=i, column=E).value)
-            Issues[KEY]["STATUS"] = STATUS
-            
-            RESPONSIBLE=(CurrentSheet.cell(row=i, column=G).value)
-            Issues[KEY]["RESPONSIBLE"] = RESPONSIBLE.encode('utf-8')
-            
-            #REPORTER=(CurrentSheet.cell(row=i, column=G).value)
-            #Issues[KEY]["REPORTER"] = REPORTER
-            
-            
-            CREATOR=(CurrentSheet.cell(row=i, column=H).value)
-            Issues[KEY]["CREATOR"] = CREATOR
-            
-            CREATED=(CurrentSheet.cell(row=i, column=I).value) #Inspection date
-            # ISO 8601 conversion to Exceli time
-            time2=CREATED.strftime("%Y-%m-%dT%H:%M:%S.000-0300")  #-0300 is UTC delta to Finland, 000 just keeps Jira happy
-            print "CREATED ISOFORMAT TIME2:{0}".format(time2)
-            CREATED=time2
-            INSPECTED=CREATED # just reusing value
-            Issues[KEY]["INSPECTED"] = INSPECTED
-            
-            
-            SHIP=(CurrentSheet.cell(row=i, column=M).value)
-            Issues[KEY]["SHIP"] = SHIP
-            
-            PERFORMER=(CurrentSheet.cell(row=i, column=P).value)
-            Issues[KEY]["PERFORMER"] = PERFORMER # .encode('utf-8')
-            
-              
-            #RESPHONE=(CurrentSheet.cell(row=i, column=U).value)
-            #Issues[KEY]["RESPHONE"] = RESPHONE
-            
-            DEPARTMENT=(CurrentSheet.cell(row=i, column=S).value)
-            Issues[KEY]["DEPARTMENT"] = DEPARTMENT
-            
-            DECK=(CurrentSheet.cell(row=i, column=V).value)
-            Issues[KEY]["DECK"] = DECK
-            
-            BLOCK=(CurrentSheet.cell(row=i, column=W).value)
-            Issues[KEY]["BLOCK"] = BLOCK
-            
-            FIREZONE=(CurrentSheet.cell(row=i, column=X).value)
-            Issues[KEY]["FIREZONE"] = FIREZONE
-            
-                
-            SYSTEMNUMBER=(CurrentSheet.cell(row=i, column=N).value)
-            Issues[KEY]["SYSTEMNUMBER"] = SYSTEMNUMBER
-            
-            
-            
-            
-            #Create sub dictionary for possible subtasks (to be used later)
-            Issues[KEY]["REMARKS"]={}
-            
+            logging.debug("ROW:{0}     Issue-key:{1}".format(i,mycell.value))
+            DRWNMB=(CurrentSheet.cell(row=i, column=B).value)
+            logging.debug("             Old Drawing number:{1}".format(i,DRWNMB))
+            NEW_DRWNMB=(CurrentSheet.cell(row=i, column=C).value)
+            logging.debug("             NEW Drawing number:{1}".format(i,NEW_DRWNMB))
             logging.debug("---------------------------------------------------")
             i=i+1
-    #print Issues
-    #print Issues.items() 
-    
-    #key=18503 # check if this key exists
-    #if key in Issues:
-    #    print "EXISTS"
-    #else:
-    #    print "NOT THERE"
-    #for key, value in Issues.iteritems() :
-    #    print key, value
-   
-        
+  
    
            
        
