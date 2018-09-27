@@ -95,7 +95,7 @@ def main(argv):
     Authenticate(JIRASERVICE,PSWD,USER)
     jira=DoJIRAStuff(USER,PSWD,JIRASERVICE)
     
-    Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV)
+    Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira)
 
 
 
@@ -105,7 +105,7 @@ def main(argv):
 
 #NOTE: Uses hardcoded sheet/column value
 
-def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
+def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
 
     files=excelfilepath+"/"+filename
     logging.debug ("Excel file:{0}".format(files))
@@ -171,8 +171,9 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV):
             logging.debug("             NEW Drawing number:{1}".format(i,NEW_DRWNMB))
             logging.debug("---------------------------------------------------")
             i=i+1
-  
-   
+            
+    for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
+        logging.debug("{}: {}".format(issue.key, issue.fields.summary))
            
        
          
