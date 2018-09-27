@@ -28,7 +28,7 @@ import unidecode
 start = time.clock()
 __version__ = u"0.1"
 
-# should pass via parameters
+# should pass via  parameters
 #ENV="demo"
 ENV=u"PROD"
 
