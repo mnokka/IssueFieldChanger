@@ -115,7 +115,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     Issues=defaultdict(dict) 
    
     #main excel definitions
-    MainSheet="Sheet1" 
+    MainSheet="Sheet0" 
     wb= openpyxl.load_workbook(files)
     #types=type(wb)
     #logging.debug ("Type:{0}".format(types))
@@ -123,24 +123,16 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     #logging.debug ("Sheets:{0}".format(sheets))
     CurrentSheet=wb[MainSheet] 
     logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-    logging.debug ("First key:{0}".format(CurrentSheet['A2'].value))
-    logging.debug ("First Drawing number:{0}".format(CurrentSheet['B2'].value))
-    logging.debug ("First NEW Drawing Number:{0}".format(CurrentSheet['C2'].value))
-    #types=type(wb)
-    #logging.debug ("Type:{0}".format(types))
-    #sheets=wb.get_sheet_names()
-    #logging.debug ("Sheets:{0}".format(sheets))
-    #logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-    #logging.debug ("First row:{0}".format(CurrentSheet['A4'].value))
-   
+    logging.debug ("First key:{0}".format(CurrentSheet['B4'].value))
+    logging.debug ("First Area code:{0}".format(CurrentSheet['C4'].value))
    
 
     ########################################
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
-    DATASTARTSROW=2 # data section starting line 
-    A=1 # issue key
-    B=2 # Drawing Number
-    C=3 # New replacemewnt Drawing Number
+    DATASTARTSROW=4 # data section starting line 
+    #A=1 # issue key
+    B=2 # issue key
+    C=3 # Area code, to be owerwritten if something exists in the issue
     
 
     #print Issues.items() 
@@ -161,28 +153,30 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     # NOTE: As this handles first sheet, using used row/cell reading (buggy, works only for first sheet) 
     #
     i=DATASTARTSROW # brute force row indexing
-    for row in CurrentSheet[('A{}:A{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
+    for row in CurrentSheet[('B{}:B{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
         for mycell in row:
             KEY=mycell.value
             logging.debug("ROW:{0}     Issue-key:{1}".format(i,mycell.value))
-            DRWNMB=(CurrentSheet.cell(row=i, column=B).value)
-            logging.debug("             Old Drawing number:{1}".format(i,DRWNMB))
-            NEW_DRWNMB=(CurrentSheet.cell(row=i, column=C).value)
-            logging.debug("             NEW Drawing number:{1}".format(i,NEW_DRWNMB))
+            AREA=(CurrentSheet.cell(row=i, column=C).value)
+            logging.debug("             Area code:{1}".format(i,AREA))
             
             myissue=123
-            for issue in jira.search_issues("project=NB1400DM  and issuekey = {0}".format(KEY), maxResults=10):
+            for issue in jira.search_issues("project=NB1394DM  and issuekey = {0}".format(KEY), maxResults=10):
                 #bug: if more than one match will fail
                 myissuekey=format(issue.key)
                 logging.debug("Jira issue key (from Jira): {0}".format(myissuekey))
                 #logging.debug("ISSUE: {0}:".format(issue))
                 #logging.debug("ID{0}: ".format(issue.id))
               
-                myissuedrwnmr=format(issue.fields.customfield_10019)
-                logging.debug("Current Jira Drawing Number value: {0}:".format(myissuedrwnmr))
-               
-                logging.debug("SHOULD Change {0} ----> {1}".format(myissuedrwnmr,NEW_DRWNMB))
-                issue.update(customfield_10019=NEW_DRWNMB)
+                myissueareavalue=issue.fields.customfield_10007
+                logging.debug("Current Jira  value: {0}:".format(myissueareavalue))
+                if (myissueareavalue is None):
+                    logging.debug("*** No previous Area value ****")
+                    logging.debug("*** Setting initial value as:{0}".format(AREA))
+                else:                      
+                    logging.debug("Current Jira Area value: {0}:".format(myissueareavalue[0]))
+                    logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueareavalue[0],AREA))
+                #issue.update(customfield_10007=AREAxx)
                 #if (myissuekey=="NB1400DM-1936"):
                 #    logging.debug("Found: {0}".format(myissuekey))
                 #    issue.update(customfield_10019=NEW_DRWNMB)
