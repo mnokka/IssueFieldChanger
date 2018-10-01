@@ -176,12 +176,14 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                 else:                      
                     logging.debug("Current Jira Area value: {0}:".format(myissueareavalue[0]))
                     logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueareavalue[0],AREA))
-                #issue.update(customfield_10007=AREAxx)
+             
+                #issue.update(customfield_10007=AREA)
+                issue.update(fields={'customfield_10007': [{'value':AREA}]}) #   .format(AREA))
                 #if (myissuekey=="NB1400DM-1936"):
                 #    logging.debug("Found: {0}".format(myissuekey))
                 #    issue.update(customfield_10019=NEW_DRWNMB)
                 logging.debug("---------------------------------------------------")
-                
+                sys.exit(5)
             i=i+1
             
     #for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
