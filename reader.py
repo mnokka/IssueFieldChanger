@@ -23,7 +23,8 @@ import re
 import os
 import time
 import unidecode
-
+from jira import JIRA, JIRAError
+from collections import defaultdict
 
 start = time.clock()
 __version__ = u"0.1"
@@ -111,8 +112,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     logging.debug ("Excel file:{0}".format(files))
    
   
-   
-    Issues=defaultdict(dict) 
+    IllegalFieldValues=defaultdict(int)  # https://stackoverflow.com/questions/38027965/increment-value-of-integer-in-python-dictionary#38028063
    
     #main excel definitions
     MainSheet="Sheet0" 
@@ -152,6 +152,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     # NOTE: Uses hardcoded sheet/column values
     # NOTE: As this handles first sheet, using used row/cell reading (buggy, works only for first sheet) 
     #
+   
     i=DATASTARTSROW # brute force row indexing
     for row in CurrentSheet[('B{}:B{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
         for mycell in row:
@@ -178,20 +179,29 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                     logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueareavalue[0],AREA))
              
                 #issue.update(customfield_10007=AREA)
-                issue.update(fields={'customfield_10007': [{'value':AREA}]}) #   .format(AREA))
-                #if (myissuekey=="NB1400DM-1936"):
-                #    logging.debug("Found: {0}".format(myissuekey))
-                #    issue.update(customfield_10019=NEW_DRWNMB)
-                logging.debug("---------------------------------------------------")
-                sys.exit(5)
+                try:
+                    issue.update(fields={'customfield_10007': [{'value':AREA}]}) #   .format(AREA))
+                except JIRAError as e: 
+                    logging.debug(" ********** JIRA ERROR DETECTED: Not defined Area value used: {0} ***********".format(AREA))
+                    logging.debug(" ********** Statuscode:{0}    Statustext:{1} ************".format(e.status_code,e.text))
+                    IllegalFieldValues[AREA] +=1 
+                else: 
+                    logging.debug("Legal AREA value used")
+                logging.debug("----------------------------------------------------------------------------------------------------")
+                #sys.exit(5)
             i=i+1
+            #if (i>12):
+            #    for area_value in IllegalFieldValues:
+            #        logging.debug("Used illegal value:{0}".format(area_value))
+            #    sys.exit(5)  
             
     #for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
     #    logging.debug("{}: {}".format(issue.key, issue.fields.summary))
            
        
          
-  
+    for area_value in IllegalFieldValues:
+        logging.debug("Used illegal value:{0}".format(area_value))
 
     
     
