@@ -23,7 +23,8 @@ import re
 import os
 import time
 import unidecode
-
+from jira import JIRA, JIRAError
+from collections import defaultdict
 
 start = time.clock()
 __version__ = u"0.1"
@@ -123,24 +124,20 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     #logging.debug ("Sheets:{0}".format(sheets))
     CurrentSheet=wb[MainSheet] 
     logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-    logging.debug ("First key:{0}".format(CurrentSheet['A2'].value))
-    logging.debug ("First Drawing number:{0}".format(CurrentSheet['B2'].value))
-    logging.debug ("First NEW Drawing Number:{0}".format(CurrentSheet['C2'].value))
-    #types=type(wb)
-    #logging.debug ("Type:{0}".format(types))
-    #sheets=wb.get_sheet_names()
-    #logging.debug ("Sheets:{0}".format(sheets))
-    #logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-    #logging.debug ("First row:{0}".format(CurrentSheet['A4'].value))
-   
+
+    logging.debug ("First old DRW:{0}".format(CurrentSheet['A2'].value))
+    logging.debug ("First  new DRW:{0}".format(CurrentSheet['B2'].value))
+
    
 
     ########################################
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
     DATASTARTSROW=2 # data section starting line 
-    A=1 # issue key
-    B=2 # Drawing Number
-    C=3 # New replacemewnt Drawing Number
+
+    A=1 # Drawing Number
+    B=2 # New Drwaing Number
+    #C=3 # Area code, to be owerwritten if something exists in the issue
+
     
 
     #print Issues.items() 
@@ -164,38 +161,45 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     for row in CurrentSheet[('A{}:A{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
         for mycell in row:
             KEY=mycell.value
-            logging.debug("ROW:{0}     Issue-key:{1}".format(i,mycell.value))
-            DRWNMB=(CurrentSheet.cell(row=i, column=B).value)
-            logging.debug("             Old Drawing number:{1}".format(i,DRWNMB))
-            NEW_DRWNMB=(CurrentSheet.cell(row=i, column=C).value)
-            logging.debug("             NEW Drawing number:{1}".format(i,NEW_DRWNMB))
+
+            logging.debug("ROW:{0}".format(i))
+            OLDDRW=(CurrentSheet.cell(row=i, column=A).value)
+            NEWDRW=(CurrentSheet.cell(row=i, column=B).value)
+            logging.debug("             OLDDRW code:{1}".format(i,OLDDRW))
+            logging.debug("             NEWDRW code:{1}".format(i,NEWDRW))
             
-            myissue=123
-            for issue in jira.search_issues("project=NB1400DM  and issuekey = {0}".format(KEY), maxResults=10):
+            for issue in jira.search_issues("project=NB1400DM and \"Drawing Number\" ~ {0}".format(OLDDRW), maxResults=10):
+
                 #bug: if more than one match will fail
                 myissuekey=format(issue.key)
                 logging.debug("Jira issue key (from Jira): {0}".format(myissuekey))
                 #logging.debug("ISSUE: {0}:".format(issue))
                 #logging.debug("ID{0}: ".format(issue.id))
-              
-                myissuedrwnmr=format(issue.fields.customfield_10019)
-                logging.debug("Current Jira Drawing Number value: {0}:".format(myissuedrwnmr))
-               
-                logging.debug("SHOULD Change {0} ----> {1}".format(myissuedrwnmr,NEW_DRWNMB))
-                issue.update(customfield_10019=NEW_DRWNMB)
-                #if (myissuekey=="NB1400DM-1936"):
-                #    logging.debug("Found: {0}".format(myissuekey))
-                #    issue.update(customfield_10019=NEW_DRWNMB)
-                logging.debug("---------------------------------------------------")
-                
-            i=i+1
+
             
-    #for issue in jira.search_issues('project=NB1400DM  and issuekey = NB1400DM-1165', maxResults=10):
-    #    logging.debug("{}: {}".format(issue.key, issue.fields.summary))
+                myissueDrawingNumbervalue=issue.fields.customfield_10019
+                logging.debug("Current Jira Drawing Number value: {0}".format(myissueDrawingNumbervalue))
+                if (myissueDrawingNumbervalue is None):
+                    logging.debug("*** No previous Drawing Number value ****")
+                    logging.debug("*** Setting initial value as:{0}".format(NEWDRW))
+                else:                      
+                    #logging.debug("Current Jira Drawing Numbervalue: {0}:".format(myissueDrawingNumbervalue))
+                    logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueDrawingNumbervalue,NEWDRW))
+             
+                #issue.update(customfield_10019=DrawingNumber   , single test field)
+                try:
+                    issue.update(fields={'customfield_10019': NEWDRW}) 
+                except JIRAError as e: 
+                    logging.debug(" ********** JIRA ERROR DETECTED: ***********")
+                    logging.debug(" ********** Statuscode:{0}    Statustext:{1} ************".format(e.status_code,e.text))
+                    #sys.exit(5) 
+                else: 
+                    logging.debug("All OK")
+                    #sys.exit(5)
            
-       
-         
-  
+            i=i+1
+     
+            logging.debug("---------------------------------------------------------------")
 
     
     
