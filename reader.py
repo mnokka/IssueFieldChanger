@@ -25,6 +25,7 @@ import time
 import unidecode
 from jira import JIRA, JIRAError
 from collections import defaultdict
+from logilab.common.logging_ext import xxx_cyan
 
 start = time.clock()
 __version__ = u"0.1"
@@ -109,47 +110,37 @@ def main(argv):
 def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
 
     files=excelfilepath+"/"+filename
-    logging.debug ("Excel file:{0}".format(files))
-   
-  
+    logging.debug ("LOG file:{0}".format(files))
    
     Issues=defaultdict(dict) 
    
-    #main excel definitions
-    MainSheet="Sheet1" 
-    wb= openpyxl.load_workbook(files)
-    #types=type(wb)
-    #logging.debug ("Type:{0}".format(types))
-    #sheets=wb.get_sheet_names()
-    #logging.debug ("Sheets:{0}".format(sheets))
-    CurrentSheet=wb[MainSheet] 
-    logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
-
-    logging.debug ("First old DRW:{0}".format(CurrentSheet['A2'].value))
-    logging.debug ("First  new DRW:{0}".format(CurrentSheet['B2'].value))
-
+  
+    with open(files, "r") as myhandle:
+        array=myhandle.readlines()
+        
+    KEY=""
+    VALUE=""    
+    for line in array:        
+        #print "LINE:{0}".format(line)
    
-
-    ########################################
-    #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
-    DATASTARTSROW=2 # data section starting line 
-
-    A=1 # Drawing Number
-    B=2 # New Drwaing Number
-    #C=3 # Area code, to be owerwritten if something exists in the issue
-
-    
-
-    #print Issues.items() 
-    
-    #key=18503 # check if this key exists
-    #if key in Issues:
-    #    print "EXISTS"
-    #else:
-    #    print "NOT THERE"
-    #for key, value in Issues.iteritems() :
-    #    print key, value
-
+        parseinfos = re.search(r"(.*)(from Jira)(...)(.*$)", line)
+        if parseinfos: #new event found
+            CurrentGroups=parseinfos.groups()
+            KEY=CurrentGroups[3]
+            logging.debug( "---> ISSUE FOUND{0} ".format(KEY))
+            #KEY=CurrentGroups[3]
+      
+            
+        parseinfos2 = re.search(r"(.*)(-->)(.)(.*$)", line)  
+        if parseinfos2: #new event found
+            CurrentGroups2=parseinfos2.groups()
+            VALUE=CurrentGroups2[3]
+            logging.debug( "---> VALUE FOUND{0} ".format(VALUE))  
+            #VALUE=CurrentGroups2[3]
+            Issues[KEY]=VALUE
+        #else: 
+            #print "nomatch"
+   
         
     ### MAIN EXCEL ###########################################################################################
     #Go through main excel sheet for main issue keys (and contents findings)
@@ -157,19 +148,18 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     # NOTE: Uses hardcoded sheet/column values
     # NOTE: As this handles first sheet, using used row/cell reading (buggy, works only for first sheet) 
     #
-    i=DATASTARTSROW # brute force row indexing
-    for row in CurrentSheet[('A{}:A{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
-        for mycell in row:
-            KEY=mycell.value
+   
+     
+    logging.debug("---------------------------------------------------------------")
 
-            logging.debug("ROW:{0}".format(i))
-            OLDDRW=(CurrentSheet.cell(row=i, column=A).value)
-            NEWDRW=(CurrentSheet.cell(row=i, column=B).value)
-            logging.debug("             OLDDRW code:{1}".format(i,OLDDRW))
-            logging.debug("             NEWDRW code:{1}".format(i,NEWDRW))
-            
-            for issue in jira.search_issues("project=NB1400DM and \"Drawing Number\" ~ {0}".format(OLDDRW), maxResults=10):
-
+    i=1
+    for key, value in Issues.iteritems() : 
+        logging.debug("------------------------------------------------------------")
+        logging.debug( "---> KEY:{0} VALUE:{1} ".format(key,value))  
+  
+  
+        for issue in jira.search_issues("project=NB1400DM and issuekey = {0}".format(key), maxResults=10):
+                logging.debug( "---> AGAIN KEY:{0} VALUE:{1} ".format(key,value))  
                 #bug: if more than one match will fail
                 myissuekey=format(issue.key)
                 logging.debug("Jira issue key (from Jira): {0}".format(myissuekey))
@@ -181,28 +171,27 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                 logging.debug("Current Jira Drawing Number value: {0}".format(myissueDrawingNumbervalue))
                 if (myissueDrawingNumbervalue is None):
                     logging.debug("*** No previous Drawing Number value ****")
-                    logging.debug("*** Setting initial value as:{0}".format(NEWDRW))
+                    logging.debug("*** Setting initial value as:{0}".format(value))
                 else:                      
                     #logging.debug("Current Jira Drawing Numbervalue: {0}:".format(myissueDrawingNumbervalue))
-                    logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueDrawingNumbervalue,NEWDRW))
+                    logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueDrawingNumbervalue,value))
              
                 #issue.update(customfield_10019=DrawingNumber   , single test field)
                 try:
-                    issue.update(fields={'customfield_10019': NEWDRW}) 
+                    issue.update(fields={'customfield_10019': value}) 
                 except JIRAError as e: 
                     logging.debug(" ********** JIRA ERROR DETECTED: ***********")
                     logging.debug(" ********** Statuscode:{0}    Statustext:{1} ************".format(e.status_code,e.text))
                     #sys.exit(5) 
                 else: 
                     logging.debug("All OK")
-                    #sys.exit(5)
-           
-            i=i+1
-     
-            logging.debug("---------------------------------------------------------------")
-
-    
-    
+                    #sys.exit(5) 
+        i=i+1
+        print ("line:{0})".format(i))
+    logging.debug("*************************************************************************")     
+  
+  
+  
   
         
     end = time.clock()
