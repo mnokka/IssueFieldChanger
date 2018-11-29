@@ -132,10 +132,10 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
 
     ########################################
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
-    DATASTARTSROW=2 # data section starting line 
+    DATASTARTSROW=1153 # data section starting line   TODO:ARGUMENT
 
-    A=1 # Drawing Number
-    B=2 # New Drwaing Number
+    A=1 # Drawing Number TODO:ARGUMENT
+    B=2 # New Drwaing Number TODO:ARGUMENT
     #C=3 # Area code, to be owerwritten if something exists in the issue
 
     
@@ -177,7 +177,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                 #logging.debug("ID{0}: ".format(issue.id))
 
             
-                myissueDrawingNumbervalue=issue.fields.customfield_10019
+                myissueDrawingNumbervalue=issue.fields.customfield_10019  #TODO:ARGUMENT
                 logging.debug("Current Jira Drawing Number value: {0}".format(myissueDrawingNumbervalue))
                 if (myissueDrawingNumbervalue is None):
                     logging.debug("*** No previous Drawing Number value ****")
