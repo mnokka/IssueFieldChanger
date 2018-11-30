@@ -164,12 +164,28 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
             KEY=mycell.value
 
             logging.debug("ROW:{0}".format(i))
+            
+            # Using hack: https://stackoverflow.com/questions/25967959/how-to-resolve-attributeerror-nonetype-object-has-no-attribute-encode-in-py#25968060
+            # to solve None type and encode errors. I have no clue why my code is now working 
+            #OLDDRW=(CurrentSheet.cell(row=i, column=A).value).encode('utf-8')
+            #NEWDRW=(CurrentSheet.cell(row=i, column=B).value).encode('utf-8')
             OLDDRW=(CurrentSheet.cell(row=i, column=A).value)
             NEWDRW=(CurrentSheet.cell(row=i, column=B).value)
-            logging.debug("             OLDDRW code:{1}".format(i,OLDDRW))
-            logging.debug("             NEWDRW code:{1}".format(i,NEWDRW))
+            if (OLDDRW):
+                logging.debug("OLDDRW EXISTS.ENCODING")
+                OLDDRW=OLDDRW.encode('utf-8')
+            else:
+                logging.debug("OLDDRW DODGY.DO NOTHING") 
+            if (NEWDRW):
+                logging.debug("NEWDRW EXISTS.ENCODING")
+                NEWDRW=NEWDRW.encode('utf-8')
+            else:
+                logging.debug("NEWDRW DODGY.DO NOTHING")      
             
-            sys.exit(5)
+            logging.debug("             OLDDRW code:{0}".format(OLDDRW))
+            logging.debug("             NEWDRW code:{0}".format(NEWDRW))
+            
+            
             for issue in jira.search_issues("project=NB1400DM and \"Drawing Number\" ~ {0}".format(OLDDRW), maxResults=10):
 
                 #TODO:BUG: if more than one match will fail
@@ -204,7 +220,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                 
                 
             i=i+1
-            sys.exit(5)
+            
             logging.debug("---------------------------------------------------------------")
 
     
