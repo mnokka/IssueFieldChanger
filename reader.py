@@ -116,7 +116,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     Issues=defaultdict(dict) 
    
     #main excel definitions
-    MainSheet="Sheet1" 
+    MainSheet="Sheet0" # TODO:ARGUMENT
     wb= openpyxl.load_workbook(files)
     #types=type(wb)
     #logging.debug ("Type:{0}".format(types))
@@ -125,8 +125,8 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     CurrentSheet=wb[MainSheet] 
     logging.debug ("CurrentSheet:{0}".format(CurrentSheet))
 
-    logging.debug ("First old DRW:{0}".format(CurrentSheet['A2'].value))
-    logging.debug ("First  new DRW:{0}".format(CurrentSheet['B2'].value))
+    logging.debug ("First old DRW:{0}".format(CurrentSheet['D1153'].value)) #TODO:ARGUMENT
+    logging.debug ("First  new DRW:{0}".format(CurrentSheet['E1153'].value)) #TODO:ARGUMENT
 
    
 
@@ -134,8 +134,8 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
     DATASTARTSROW=1153 # data section starting line   TODO:ARGUMENT
 
-    A=1 # Drawing Number TODO:ARGUMENT
-    B=2 # New Drwaing Number TODO:ARGUMENT
+    A=4 # D colunm   Drawing Number TODO:ARGUMENT
+    B=5 # E column   New Drwaing Number TODO:ARGUMENT
     #C=3 # Area code, to be owerwritten if something exists in the issue
 
     
@@ -158,6 +158,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     # NOTE: As this handles first sheet, using used row/cell reading (buggy, works only for first sheet) 
     #
     i=DATASTARTSROW # brute force row indexing
+    SKIP=1
     for row in CurrentSheet[('A{}:A{}'.format(DATASTARTSROW,CurrentSheet.max_row))]:  # go trough all column A(Issue KEY) rows
         for mycell in row:
             KEY=mycell.value
@@ -168,9 +169,10 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
             logging.debug("             OLDDRW code:{1}".format(i,OLDDRW))
             logging.debug("             NEWDRW code:{1}".format(i,NEWDRW))
             
+            sys.exit(5)
             for issue in jira.search_issues("project=NB1400DM and \"Drawing Number\" ~ {0}".format(OLDDRW), maxResults=10):
 
-                #bug: if more than one match will fail
+                #TODO:BUG: if more than one match will fail
                 myissuekey=format(issue.key)
                 logging.debug("Jira issue key (from Jira): {0}".format(myissuekey))
                 #logging.debug("ISSUE: {0}:".format(issue))
@@ -187,18 +189,22 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                     logging.debug("SHOULD overwrite {0} ----> {1}".format(myissueDrawingNumbervalue,NEWDRW))
              
                 #issue.update(customfield_10019=DrawingNumber   , single test field)
-                try:
-                    issue.update(fields={'customfield_10019': NEWDRW}) 
-                except JIRAError as e: 
-                    logging.debug(" ********** JIRA ERROR DETECTED: ***********")
-                    logging.debug(" ********** Statuscode:{0}    Statustext:{1} ************".format(e.status_code,e.text))
+                
+                if (SKIP==0):
+                    sys.exit(5)  #to be sure not to doit first time
+                    try:
+                        issue.update(fields={'customfield_10019': NEWDRW})  #TODO:ARGUMENT
+                    except JIRAError as e: 
+                        logging.debug(" ********** JIRA ERROR DETECTED: ***********")
+                        logging.debug(" ********** Statuscode:{0}    Statustext:{1} ************".format(e.status_code,e.text))
                     #sys.exit(5) 
-                else: 
-                    logging.debug("All OK")
+                    else: 
+                        logging.debug("All OK")
                     #sys.exit(5)
-           
+                
+                
             i=i+1
-     
+            sys.exit(5)
             logging.debug("---------------------------------------------------------------")
 
     
