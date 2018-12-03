@@ -116,7 +116,7 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
     Issues=defaultdict(dict) 
    
     #main excel definitions
-    MainSheet="Sheet0" # TODO:ARGUMENT
+    MainSheet="Sheet1" # TODO:ARGUMENT
     wb= openpyxl.load_workbook(files)
     #types=type(wb)
     #logging.debug ("Type:{0}".format(types))
@@ -132,10 +132,10 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
 
     ########################################
     #CONFIGURATIONS AND EXCEL COLUMN MAPPINGS
-    DATASTARTSROW=1153 # data section starting line   TODO:ARGUMENT
+    DATASTARTSROW=2 #1153 # data section starting line   TODO:ARGUMENT
 
-    A=4 # D colunm   Drawing Number TODO:ARGUMENT
-    B=5 # E column   New Drwaing Number TODO:ARGUMENT
+    A=1 # D colunm   Drawing Number TODO:ARGUMENT
+    B=2 # E column   New Drwaing Number TODO:ARGUMENT
     #C=3 # Area code, to be owerwritten if something exists in the issue
 
     
@@ -220,8 +220,13 @@ def Parse(JIRASERVICE,JIRAPROJECT,PSWD,USER,excelfilepath,filename,ENV,jira):
                 
                 
             i=i+1
-            
             logging.debug("---------------------------------------------------------------")
+            
+        #dodgy excel, need to break manually (max row not ok)
+        if (i==536):
+            logging.debug("FORCED BREAK")
+            break
+            
 
     
     
